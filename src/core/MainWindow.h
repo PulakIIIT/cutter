@@ -212,6 +212,11 @@ private slots:
     void onZoomReset();
 
     void setAvailableIOModeOptions();
+    
+protected:
+    void dragEnterEvent(QDragEnterEvent *event);
+    void dropEvent(QDropEvent *event);
+
 private:
     CutterCore *core;
 

@@ -109,6 +109,8 @@
 #include <QToolTip>
 #include <QTreeWidgetItem>
 #include <QSvgRenderer>
+#include <QtGui>
+#include <QFileInfo>
 
 // Graphics
 #include <QGraphicsEllipseItem>
@@ -138,6 +140,9 @@ MainWindow::~MainWindow()
 void MainWindow::initUI()
 {
     ui->setupUi(this);
+
+    // Enable drag and drop of binaries
+    setAcceptDrops(true);
 
     // Initialize context menu extensions for plugins
     disassemblyContextMenuExtensions = new QMenu(tr("Plugins"), this);
@@ -1843,5 +1848,29 @@ void MainWindow::setAvailableIOModeOptions()
         break;
     default:
         ui->actionReadOnly->setChecked(true);
+    }
+}
+
+void MainWindow::dragEnterEvent(QDragEnterEvent *event) {
+    // Accept drag enter events only if they provide a URL
+    if (event->mimeData()->hasUrls()) {
+        event->acceptProposedAction();
+    }
+}
+
+void MainWindow::dropEvent(QDropEvent *event) {
+    // Check that atleast one url is present in the event
+    if (event->mimeData()->urls().count() == 0) {
+        qWarning() << "No URL in drop event, ignoring it.";
+        return;
+    }
+    QString newFileName = event->mimeData()->urls().first().toLocalFile();
+    QFileInfo fileInfo(newFileName);
+    // Check that the file is a valid file
+    if(fileInfo.isFile()){
+        event->acceptProposedAction();
+        static_cast<CutterApplication*>(qApp)->launchNewInstance({newFileName});
+    } else {
+        qWarning() << "The file dragged is not a valid file";
     }
 }
